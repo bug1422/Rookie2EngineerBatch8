@@ -1,0 +1,8 @@
+/* For WebKit browsers (Chrome, Safari, Edge) */
+.date-input.input[type="date"]::-webkit-calendar-picker-indicator,
+.date-input.input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.date-input.input[type="time"]::-webkit-calendar-picker-indicator  {
+  opacity: 0;
+  display: none;
+  pointer-events: none;
+}

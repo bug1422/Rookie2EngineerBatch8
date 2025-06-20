@@ -1,0 +1,73 @@
+.toast-progress-bar {
+  width: 100%;
+  /* The transform will be set via a data attribute and CSS variable */
+  transform: translateX(var(--toast-progress, 0%));
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.slide-in-from-right {
+  animation: slide-in-right 300ms ease-out forwards;
+  animation-iteration-count: 1;
+  pointer-events: auto;
+}
+
+.slide-out-to-right {
+  animation: slide-out-right 300ms ease-in forwards;
+  animation-iteration-count: 1;
+  pointer-events: none;
+}
+
+@keyframes slide-in-top {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-top {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+.slide-in-from-top {
+  animation: slide-in-top 300ms ease-out forwards;
+  animation-iteration-count: 1;
+  pointer-events: auto;
+}
+
+.slide-out-to-top {
+  animation: slide-out-top 300ms ease-in forwards;
+  animation-iteration-count: 1;
+  pointer-events: none;
+}

@@ -1,0 +1,1 @@
+export const myAssgnmentListQueryKey = "my-assignment-list";
