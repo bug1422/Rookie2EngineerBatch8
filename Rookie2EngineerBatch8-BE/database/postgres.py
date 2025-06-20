@@ -9,10 +9,7 @@ logger = get_logger(__name__)
 class PostgresDatabase:
     def __init__(self):
         encoded_password = urllib.parse.quote_plus(settings.POSTGRES_PASSWORD)
-        if settings.DATABASE_URL is not None:
-            self.DATABASE_URL = settings.DATABASE_URL
-        else:    
-            self.DATABASE_URL = f"postgresql+psycopg2://{settings.POSTGRES_USER}:{encoded_password}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/{settings.POSTGRES_DB}"
+        self.DATABASE_URL = f"postgresql+psycopg2://{settings.POSTGRES_USER}:{encoded_password}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/{settings.POSTGRES_DB}"
         try:
             self.engine = create_engine(self.DATABASE_URL, echo=True)
             with self.engine.connect() as connection:

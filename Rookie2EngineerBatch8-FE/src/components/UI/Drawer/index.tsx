@@ -10,7 +10,7 @@ export default function Drawer() {
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
-                <img src="/images/nashtech.png" alt="Nashtech Logo" className="w-10 h-10" />
+                <div className="w-12 h-12" />
                 <span className="text-lg text-primary font-bold">Online Asset Management</span>
             </div>
             <div className="divider" />

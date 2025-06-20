@@ -25,7 +25,6 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
 
     # Database Settings
-    DATABASE_URL: Optional[str]
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
@@ -77,6 +76,7 @@ class Settings(BaseSettings):
         case_sensitive = True
         env_file = ".env"
         env_file_encoding = "utf-8"
+        
 
 # Create a cached instance of settings
 @lru_cache()

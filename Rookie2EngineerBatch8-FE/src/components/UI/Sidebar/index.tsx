@@ -10,7 +10,7 @@ export default function Sidebar() {
     return (
         <div id="sidebar">
             <div className="flex flex-col mb-4">
-                <img src="/images/nashtech.png" alt="logo" className="w-20 h-20" />
+                <div className="w-12 h-12" />
                 <h1 className="text-xl text-primary font-bold">Online Asset Management</h1>
             </div>
             <div id="sidebar-buttons" className="join join-vertical w-full">
