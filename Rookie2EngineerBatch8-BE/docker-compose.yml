@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the source code
+      - ./:/app
+      # Create anonymous volumes for Python cache directories to keep them container-specific
+      - backend_pycache:/app/__pycache__
+      - backend_pycache_api:/app/api/__pycache__
+      - backend_pycache_api_v1:/app/api/v1/__pycache__
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    networks:
+      - assets-management-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file: .env
+    networks:
+      - assets-management-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  assets-management-network:
+    driver: bridge
+
+volumes:
+  # Database volume
+  postgres_data:
+  # Backend volumes
+  backend_pycache:
+  backend_pycache_api:
+  backend_pycache_api_v1:

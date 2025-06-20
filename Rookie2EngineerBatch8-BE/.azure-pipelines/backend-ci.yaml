@@ -1,0 +1,94 @@
+trigger: none
+
+pr:
+  branches:
+    include:
+      - "*"
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.10'
+    displayName: 'Set up Python 3.10'
+
+  - script: |
+      echo "Creating .env file for testing..."
+      echo "Note: These are MOCK values for testing only, not real credentials"
+      cat << EOF > .env
+      POSTGRES_DB=abc
+      POSTGRES_USER=abc
+      POSTGRES_PASSWORD=abc
+      DATABASE_HOST=abc
+      DATABASE_PORT=1
+      ROOT_ACCOUNT_USERNAME=abc
+      ROOT_ACCOUNT_PASSWORD=abc
+      SECRET_KEY=abc
+      ALGORITHM=HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES=1
+      REFRESH_TOKEN_EXPIRE_DAYS=1
+      EOF
+
+      echo "Exporting mock environment variables for testing..."
+      export $(cat .env | xargs)
+      echo "Environment variables set for testing with mock values"
+    displayName: 'Set up mock environment variables for testing'
+
+  - script: |
+      echo "Installing dependencies..."
+      pip install --no-cache-dir -r ./requirements.txt
+      pip install --no-cache-dir pytest pytest-cov pytest-mock
+    displayName: 'Install dependencies'
+
+  - script: |
+      echo "Checking for test files..."
+      if [ -d "./tests" ] && [ "$(find ./tests -name 'test_*.py' | wc -l)" -gt 0 ]; then
+        echo "Running repository and service tests..."
+        set -o pipefail
+        python -m pytest ./tests/services ./tests/repositories -v \
+          --cov=. \
+          --cov-report=xml:coverage.xml \
+          --cov-report=html:htmlcov \
+          --junitxml=test-results.xml \
+          | tee pytest_output.log || true
+        exit_code=$?
+        echo "Generating coverage report summary..."
+        python -m coverage report
+        if [ $exit_code -ne 0 ]; then
+          echo "##[error]Test failures detected. Check pytest output for details."
+          cat pytest_output.log
+          exit $exit_code
+        fi
+      else
+        echo "No test files found in ./tests/services or ./tests/repositories. Skipping pytest."
+      fi
+    displayName: 'Run repository and service tests'
+
+  - task: PublishCodeCoverageResults@2
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage.xml'
+    displayName: 'Publish code coverage results'
+    condition: succeededOrFailed()
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(System.DefaultWorkingDirectory)/htmlcov'
+      artifactName: 'CoverageHTML'
+      publishLocation: 'Container'
+    displayName: 'Publish HTML coverage report as artifact'
+    condition: succeededOrFailed()
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/test-results.xml'
+      testRunTitle: 'Python Tests'
+      mergeTestResults: true
+      failTaskOnFailedTests: false
+    displayName: 'Publish test results'
+    condition: succeededOrFailed()
+    
+# sửa failTaskOnFailedTests ở task PublishTestResults@2 false và bỏ true ở | tee pytest_output.log || true

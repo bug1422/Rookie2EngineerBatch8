@@ -1,0 +1,87 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - staging
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - group: Backend-Registry-Vars        # REGISTRY_USERNAME, REGISTRY_PASSWORD, etc.
+  - group: Deploy-Config                # resourceGroupName, containerAppName, etc.
+  - group: APIM-Config                  # apimName, apimApiId, etc.
+
+  # Tạo biến environment name tùy theo branch
+  - name: envName
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: 'Prod'
+    ${{ else }}:
+      value: 'Demo'
+
+jobs:
+  - deployment: DeployBackend
+    environment: $(envName)   # dùng biến envName để chọn environment dev hoặc prod
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+
+            - task: Docker@2
+              displayName: Build & Push Image
+              inputs:
+                containerRegistry: $(dockerRegistryServiceConnection)
+                repository: $(imageRepository)
+                command: buildAndPush
+                Dockerfile: $(dockerfilePath)
+                tags: |
+                  $(Build.BuildId)
+                  latest
+
+            - task: AzureCLI@2
+              displayName: Deploy to Container App
+              inputs:
+                azureSubscription: $(azureSubscription)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  az containerapp update \
+                    --name $(containerAppName) \
+                    --resource-group $(resourceGroupName) \
+                    --image $(containerRegistry)/$(imageRepository):$(Build.BuildId) \
+                    --verbose
+                  
+                  # Đợi Container App khởi động
+                  echo "Waiting for Container App to start..."
+                  sleep 60
+            
+            # Thêm bước lấy OpenAPI schema và cập nhật APIM
+            - task: AzureCLI@2
+              displayName: Update APIM with new OpenAPI schema
+              inputs:
+                azureSubscription: $(azureSubscription)
+                scriptType: bash
+                scriptLocation: inlineScript
+                inlineScript: |
+                  # Lấy URL của Container App
+                  CONTAINER_APP_URL=$(az containerapp show \
+                    --name $(containerAppName) \
+                    --resource-group $(resourceGroupName) \
+                    --query properties.configuration.ingress.fqdn -o tsv)
+                  
+                  # Tải OpenAPI schema từ FastAPI
+                  echo "Downloading OpenAPI schema from FastAPI..."
+                  curl -s https://$CONTAINER_APP_URL/openapi.json > openapi.json
+                  
+                  # Cập nhật API trong APIM
+                  echo "Updating APIM API definition..."
+                  az apim api import \
+                    --resource-group $(resourceGroupName) \
+                    --service-name $(apimName) \
+                    --api-id $(apimApiId) \
+                    --path "backend" \
+                    --specification-format OpenApi \
+                    --specification-path openapi.json \
+                    --subscription-required false

@@ -1,0 +1,41 @@
+[project]
+name = "rookie2engineerbatch8-be"
+version = "0.1.0"
+description = "API for Assets Management"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # Web Framework
+    "fastapi>=0.95.0",
+    "uvicorn>=0.34.0",
+    
+    # ORM and Database
+    "sqlmodel>=0.0.8",
+    "psycopg2-binary>=2.9.5",
+    "alembic>=1.14.0",
+    
+    # Security
+    "python-jose>=3.4.0",
+    "passlib>=1.7.4",
+    "bcrypt>=4.3.0",
+    
+    # Configuration
+    "pydantic-settings>=2.8.0",
+    
+    # Data Validation
+    "pydantic>=2.10.0",
+    
+    # File Uploads
+    "python-multipart",
+    
+    # Environment Variables
+    "python-dotenv>=1.0.0",
+    
+    # Testing
+    "pytest>=8.0.0",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=0.26.0",
+
+    # Utilities
+    "python-dateutil",
+]
